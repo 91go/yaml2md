@@ -1,0 +1,7 @@
+mode: atomic
+github.com/91go/yaml2md/cmd/md.go:13.47,15.3 1 0
+github.com/91go/yaml2md/cmd/md.go:18.13,30.2 1 0
+github.com/91go/yaml2md/cmd/root.go:30.16,32.16 2 0
+github.com/91go/yaml2md/cmd/root.go:32.16,34.3 1 0
+github.com/91go/yaml2md/cmd/root.go:37.13,47.2 1 0
+github.com/91go/yaml2md/main.go:9.13,11.2 1 0
