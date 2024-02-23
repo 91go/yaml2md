@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"io/fs"
 	"log"
 	"os"
-	"sync"
-
-	"github.com/spf13/viper"
-	"gopkg.in/yaml.v3"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"gopkg.in/yaml.v3"
 )
 
 const tpl = `{{ $prevLevel2 := "" }}
@@ -76,7 +76,7 @@ func init() {
 	// is called directly, e.g.:
 	// mdCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "src/data/qs.yml", "config file (default is src/data/qs.yml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "src/data/qs/", "config file (default is src/data/qs/)")
 	rootCmd.PersistentFlags().StringVar(&targetFile, "target", "qs.md", "target file (default is qs.md)")
 }
 
@@ -110,32 +110,37 @@ type Xxx struct {
 
 type Docs []Doc
 
-var once sync.Once
-
 func NewDocs(fp string) Docs {
 	var docs Docs
-	once.Do(func() {
-		if PathExists(fp) {
-			f, err := Load(fp)
-			if err != nil {
-				return
-			}
-			d := yaml.NewDecoder(bytes.NewReader(f))
-			for {
-				spec := new(Doc)
-				if err := d.Decode(&spec); err != nil {
-					// break the loop in case of EOF
-					if errors.Is(err, io.EOF) {
-						break
+	if PathExists(fp) {
+		err := filepath.WalkDir(fp, func(path string, de fs.DirEntry, err error) error {
+			if !de.IsDir() {
+				f, err := Load(path)
+				if err != nil {
+					return err
+				}
+				d := yaml.NewDecoder(bytes.NewReader(f))
+				for {
+					spec := new(Doc)
+					spec.Cate = de.Name()
+					if err := d.Decode(&spec); err != nil {
+						// break the loop in case of EOF
+						if errors.Is(err, io.EOF) {
+							break
+						}
+						panic(err)
 					}
-					panic(err)
-				}
-				if spec != nil {
-					docs = append(docs, *spec)
+					if spec != nil {
+						docs = append(docs, *spec)
+					}
 				}
 			}
+			return nil
+		})
+		if err != nil {
+			return nil
 		}
-	})
+	}
 	return docs
 }
 
