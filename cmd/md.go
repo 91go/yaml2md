@@ -27,7 +27,7 @@ const tpl = `{{ $prevLevel2 := "" }}
 ### {{.Name}}
 
 {{range .Xxx}}
-- {{.Qs}} {{if .As}}({{.As}}){{end}}
+- {{.Qs}}
 {{- end}}
 
 {{end}}
