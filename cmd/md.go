@@ -16,21 +16,16 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const tpl = `{{ $prevLevel2 := "" }}
+const tpl = `{{ range . }}
 
-{{range .}}
-{{if ne $prevLevel2 .Cate}}
-## {{.Cate}}
-{{ $prevLevel2 = .Cate }}
-{{end}}
+## {{ .Cate }}
 
-### {{.Name}}
+{{ range .Xts }}
 
-{{range .Xxx}}
-- {{.Qs}}
-{{- end}}
+### {{ .Name }}
 
-{{end}}
+{{ range .Xxx }}- {{ .Qs }}
+{{ end }}{{ end }}{{ end }}
 `
 
 // mdCmd represents the md command
@@ -98,13 +93,17 @@ func initConfig() {
 }
 
 type Doc struct {
-	Name string `yaml:"name,omitempty"`
-	Cate string `yaml:"cate,omitempty"`
-	Xxx  []Xxx  `yaml:"xxx,omitempty"`
+	Cate string `yaml:"cate"`
+	Xts  []Xts  `yaml:"xts"`
+}
+
+type Xts struct {
+	Name string `yaml:"name"`
+	Xxx  []Xxx  `yaml:"xxx"`
 }
 
 type Xxx struct {
-	Qs string `yaml:"qs,omitempty"`
+	Qs string `yaml:"qs"`
 	As string `yaml:"as,omitempty"`
 }
 
