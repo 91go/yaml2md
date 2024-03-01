@@ -1,31 +1,27 @@
 package cmd
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
 	"html/template"
-	"io"
-	"io/fs"
 	"log"
 	"os"
-	"path/filepath"
 
+	"github.com/91go/yaml2md/qs"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v3"
 )
 
 const tpl = `{{ range . }}
 
 ## {{ .Cate }}
 
-{{ range .Xts }}
+{{ range .Xxx }}
 
 ### {{ .Name }}
+{{range .Qs}}
+- {{index . 0}}{{end}}
 
-{{ range .Xxx }}- {{ .Qs }}
-{{ end }}{{ end }}{{ end }}
+{{ end }}{{ end }}
 `
 
 // mdCmd represents the md command
@@ -33,7 +29,7 @@ var mdCmd = &cobra.Command{
 	Use:   "md",
 	Short: "A brief description of your command",
 	Run: func(cmd *cobra.Command, args []string) {
-		docs := NewDocs(cfgFile)
+		docs := qs.NewDocs(cfgFile)
 
 		tmpl := template.Must(template.New("").Parse(tpl))
 
@@ -48,7 +44,7 @@ var mdCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		log.Println("Markdown output has been written to output.md")
+		log.Println("Markdown output has been written to qs.md")
 	},
 }
 
@@ -90,75 +86,4 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
-}
-
-type Doc struct {
-	Cate string `yaml:"cate"`
-	Xts  []Xts  `yaml:"xts"`
-}
-
-type Xts struct {
-	Name string `yaml:"name"`
-	Xxx  []Xxx  `yaml:"xxx"`
-}
-
-type Xxx struct {
-	Qs string `yaml:"qs"`
-	As string `yaml:"as,omitempty"`
-}
-
-type Docs []Doc
-
-func NewDocs(fp string) Docs {
-	var docs Docs
-	if PathExists(fp) {
-		err := filepath.WalkDir(fp, func(path string, de fs.DirEntry, err error) error {
-			if !de.IsDir() {
-				f, err := Load(path)
-				if err != nil {
-					return err
-				}
-				d := yaml.NewDecoder(bytes.NewReader(f))
-				for {
-					spec := new(Doc)
-					spec.Cate = de.Name()
-					if err := d.Decode(&spec); err != nil {
-						// break the loop in case of EOF
-						if errors.Is(err, io.EOF) {
-							break
-						}
-						panic(err)
-					}
-					if spec != nil {
-						docs = append(docs, *spec)
-					}
-				}
-			}
-			return nil
-		})
-		if err != nil {
-			return nil
-		}
-	}
-	return docs
-}
-
-func PathExists(path string) bool {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true
-	}
-	if os.IsNotExist(err) {
-		return false
-	}
-	panic(err)
-}
-
-// Load reads data saved under given name.
-func Load(name string) ([]byte, error) {
-	// p := c.path(name)
-	if _, err := os.Stat(name); err != nil {
-		return nil, err
-	}
-	return os.ReadFile(name)
 }
