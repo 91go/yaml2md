@@ -3,12 +3,13 @@ package qs
 import (
 	"bytes"
 	"errors"
-	"github.com/samber/lo"
 	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/samber/lo"
 
 	"gopkg.in/yaml.v3"
 )
@@ -97,19 +98,20 @@ func (d Docs) GetQsByName(name string) []string {
 	return nil
 }
 
-// func (d Docs) SearchQs(query string) (qs []Xxx) {
-// 	for _, doc := range d {
-// 		for _, xxx := range doc.Xxx {
-// 			qsLower := strings.ToLower(xxx.Qs)
-// 			asLower := strings.ToLower(xxx.As)
-// 			query = strings.ToLower(query)
-// 			if strings.Contains(qsLower, query) || strings.Contains(asLower, query) {
-// 				qs = append(qs, xxx)
-// 			}
-// 		}
-// 	}
-// 	return
-// }
+func (d Docs) SearchQs(query string) (qs []Xxx) {
+	for _, doc := range d {
+		for _, xxx := range doc.Xxx {
+			for _, q := range xxx.Qs {
+				qsLower := strings.ToLower(q)
+				query = strings.ToLower(query)
+				if strings.Contains(qsLower, query) {
+					qs = append(qs, xxx)
+				}
+			}
+		}
+	}
+	return
+}
 
 func PathExists(path string) bool {
 	_, err := os.Stat(path)
