@@ -3,10 +3,12 @@ package qs
 import (
 	"bytes"
 	"errors"
+	"github.com/samber/lo"
 	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -17,8 +19,8 @@ type Doc struct {
 }
 
 type Xxx struct {
-	Name string     `yaml:"name"`
-	Qs   [][]string `yaml:"qs"`
+	Name string   `yaml:"name"`
+	Qs   []string `yaml:"qs"`
 }
 
 type Docs []Doc
@@ -58,38 +60,43 @@ func NewDocs(fp string) Docs {
 }
 
 // GetNames Get All Names
-// func (d Docs) GetNames() (names []string) {
-// 	for _, doc := range d {
-// 		names = append(names, doc.Name)
-// 	}
-// 	return
-// }
-//
-// func (d Docs) GetNameByCate(cate string) (names []string) {
-// 	for _, doc := range d {
-// 		if doc.Cate == cate {
-// 			names = append(names, doc.Name)
-// 		}
-// 	}
-// 	return
-// }
-//
-//
-// func (d Docs) IsHitName(query string) bool {
-// 	return lo.ContainsBy(d, func(item Doc) bool {
-// 		return strings.EqualFold(item.Name, query)
-// 	})
-// }
-//
-// func (d Docs) GetQsByName(name string) []Xxx {
-// 	for _, doc := range d {
-// 		if strings.ToLower(doc.Name) == strings.ToLower(name) {
-// 			return doc.Xxx
-// 		}
-// 	}
-// 	return nil
-// }
-//
+func (d Docs) GetNames() (names []string) {
+	for _, doc := range d {
+		for _, xxx := range doc.Xxx {
+			names = append(names, xxx.Name)
+		}
+	}
+	return
+}
+
+func (d Docs) GetNameByCate(cate string) (names []string) {
+	for _, doc := range d {
+		if doc.Cate == cate {
+			for _, xxx := range doc.Xxx {
+				names = append(names, xxx.Name)
+			}
+		}
+	}
+	return
+}
+
+func (d Docs) IsHitName(query string) bool {
+	return lo.ContainsBy(d.GetNames(), func(name string) bool {
+		return strings.EqualFold(name, query)
+	})
+}
+
+func (d Docs) GetQsByName(name string) []string {
+	for _, doc := range d {
+		for _, xxx := range doc.Xxx {
+			if strings.EqualFold(strings.ToLower(xxx.Name), strings.ToLower(name)) {
+				return xxx.Qs
+			}
+		}
+	}
+	return nil
+}
+
 // func (d Docs) SearchQs(query string) (qs []Xxx) {
 // 	for _, doc := range d {
 // 		for _, xxx := range doc.Xxx {

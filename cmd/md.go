@@ -11,6 +11,19 @@ import (
 	"github.com/spf13/viper"
 )
 
+// const tpl = `{{ range . }}
+//
+// ## {{ .Cate }}
+//
+// {{ range .Xxx }}
+//
+// ### {{ .Name }}
+// {{range .Qs}}
+// - {{index . 0}}{{end}}
+//
+// {{ end }}{{ end }}
+// `
+
 const tpl = `{{ range . }}
 
 ## {{ .Cate }}
@@ -19,7 +32,7 @@ const tpl = `{{ range . }}
 
 ### {{ .Name }}
 {{range .Qs}}
-- {{index . 0}}{{end}}
+- {{.}}{{end}}
 
 {{ end }}{{ end }}
 `
